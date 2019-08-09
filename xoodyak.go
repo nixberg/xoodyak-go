@@ -196,6 +196,9 @@ func (x *Xoodyak) Squeeze(out []byte, count int) []byte {
 }
 
 func (x *Xoodyak) SqueezeKey(out []byte, count int) []byte {
+	if x.mode != modeKeyed {
+		panic("Xoodyak not keyed!")
+	}
 	return x.squeezeAny(out, count, flagSqueezeKey)
 }
 
