@@ -59,14 +59,29 @@ func TestKeyedMode(t *testing.T) {
 		pt, _ := hex.DecodeString(kat.PT)
 		ad, _ := hex.DecodeString(kat.AD)
 		ct, _ := hex.DecodeString(kat.CT)
+		tag := ct[len(pt):]
 
 		xoodyak := Keyed(key, nil, nil)
 		xoodyak.Absorb(nonce)
 		xoodyak.Absorb(ad)
 		newCT := xoodyak.Encrypt(pt, []byte("header"))
-		newCT = xoodyak.Squeeze(newCT, 16)
+		newCT = xoodyak.Squeeze(newCT, len(tag))
 
 		if !bytes.Equal(ct, newCT[6:]) {
+			t.Errorf("kats/aead: %d", i)
+		}
+
+		xoodyak = Keyed(key, nil, nil)
+		xoodyak.Absorb(nonce)
+		xoodyak.Absorb(ad)
+		newPT := xoodyak.Decrypt(ct[:len(pt)], []byte("header"))
+		newTag := xoodyak.Squeeze([]byte("header"), len(tag))
+
+		if !bytes.Equal(pt, newPT[6:]) {
+			t.Errorf("kats/aead: %d", i)
+		}
+
+		if !bytes.Equal(tag, newTag[6:]) {
 			t.Errorf("kats/aead: %d", i)
 		}
 	}

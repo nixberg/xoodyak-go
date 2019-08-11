@@ -117,7 +117,7 @@ func (x *Xoodyak) absorbAny(data []byte, rate int, downFlag Flag) {
 
 func (x *Xoodyak) crypt(in, out []byte, decrypt bool) []byte {
 	flag := flagCrypt
-	offset := 0
+	offset := len(out)
 	for _, block := range blocks(in, rateOutput) {
 		x.up(flag)
 		flag = flagZero
@@ -184,11 +184,11 @@ func (x *Xoodyak) Encrypt(pt, ct []byte) []byte {
 	return x.crypt(pt, ct, false)
 }
 
-func (x *Xoodyak) Decrypt(pt, ct []byte) []byte {
+func (x *Xoodyak) Decrypt(ct, pt []byte) []byte {
 	if x.mode != modeKeyed {
 		panic("Xoodyak not keyed!")
 	}
-	return x.crypt(pt, ct, true)
+	return x.crypt(ct, pt, true)
 }
 
 func (x *Xoodyak) Squeeze(out []byte, count int) []byte {
