@@ -122,7 +122,7 @@ func (x *Xoodyak) crypt(in, out []byte, decrypt bool) []byte {
 		x.up(flag)
 		flag = flagZero
 		for i, b := range block {
-			out = append(out, b^x.xoodoo.Get(i))
+			out = append(out, b^x.xoodoo.Bytes[i])
 		}
 		if decrypt {
 			x.down(out[offset:offset+len(block)], flagZero)
@@ -147,20 +147,20 @@ func (x *Xoodyak) squeezeAny(out []byte, count int, upFlag Flag) []byte {
 func (x *Xoodyak) down(block []byte, flag Flag) {
 	x.phase = phaseDown
 	for i, b := range block {
-		x.xoodoo.XOR(i, b)
+		x.xoodoo.Bytes[i] ^= b
 	}
-	x.xoodoo.XOR(len(block), 0x01)
+	x.xoodoo.Bytes[len(block)] ^= 0x01
 	if x.mode == modeHash {
-		x.xoodoo.XOR(47, byte(flag)&0x01)
+		x.xoodoo.Bytes[47] ^= byte(flag) & 0x01
 	} else {
-		x.xoodoo.XOR(47, byte(flag))
+		x.xoodoo.Bytes[47] ^= byte(flag)
 	}
 }
 
 func (x *Xoodyak) up(flag Flag) {
 	x.phase = phaseUp
 	if x.mode != modeHash {
-		x.xoodoo.XOR(47, byte(flag))
+		x.xoodoo.Bytes[47] ^= byte(flag)
 	}
 	x.xoodoo.Permute()
 }
@@ -168,7 +168,7 @@ func (x *Xoodyak) up(flag Flag) {
 func (x *Xoodyak) upTo(out []byte, count int, flag Flag) []byte {
 	x.up(flag)
 	for i := 0; i < count; i++ {
-		out = append(out, x.xoodoo.Get(i))
+		out = append(out, x.xoodoo.Bytes[i])
 	}
 	return out
 }
