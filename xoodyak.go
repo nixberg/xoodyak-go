@@ -108,7 +108,7 @@ func blocks(data []byte, rate int) (blocks [][]byte) {
 func (x *Xoodyak) absorbAny(data []byte, rate int, downFlag Flag) {
 	for _, block := range blocks(data, rate) {
 		if x.phase != phaseUp {
-			x.up(flagZero)
+			x.up(nil, 0, flagZero)
 		}
 		x.down(block, downFlag)
 		downFlag = flagZero
@@ -119,7 +119,7 @@ func (x *Xoodyak) crypt(in, out []byte, decrypt bool) []byte {
 	flag := flagCrypt
 	offset := len(out)
 	for _, block := range blocks(in, rateOutput) {
-		x.up(flag)
+		x.up(nil, 0, flag)
 		flag = flagZero
 		for i, b := range block {
 			out = append(out, b^x.xoodoo.Bytes[i])
@@ -136,10 +136,10 @@ func (x *Xoodyak) crypt(in, out []byte, decrypt bool) []byte {
 
 func (x *Xoodyak) squeezeAny(out []byte, count int, upFlag Flag) []byte {
 	iLen := len(out)
-	out = x.upTo(out, min(count, x.rates.squeeze), upFlag)
+	out = x.up(out, min(count, x.rates.squeeze), upFlag)
 	for len(out)-iLen < count {
 		x.down(nil, flagZero)
-		out = x.upTo(out, min(count-len(out)+iLen, x.rates.squeeze), flagZero)
+		out = x.up(out, min(count-len(out)+iLen, x.rates.squeeze), flagZero)
 	}
 	return out
 }
@@ -157,16 +157,12 @@ func (x *Xoodyak) down(block []byte, flag Flag) {
 	}
 }
 
-func (x *Xoodyak) up(flag Flag) {
+func (x *Xoodyak) up(out []byte, count int, flag Flag) []byte {
 	x.phase = phaseUp
 	if x.mode != modeHash {
 		x.xoodoo.Bytes[47] ^= byte(flag)
 	}
 	x.xoodoo.Permute()
-}
-
-func (x *Xoodyak) upTo(out []byte, count int, flag Flag) []byte {
-	x.up(flag)
 	for i := 0; i < count; i++ {
 		out = append(out, x.xoodoo.Bytes[i])
 	}
