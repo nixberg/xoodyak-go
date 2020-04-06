@@ -59,29 +59,9 @@ func New() *Xoodyak {
 }
 
 func Keyed(key, id, counter []byte) *Xoodyak {
-	xoodyak := Xoodyak{
-		mode: modeKeyed,
-		rates: Rates{
-			absorb:  rateInput,
-			squeeze: rateOutput,
-		},
-		phase: phaseUp,
-	}
-
-	var buf []byte
-	buf = append(buf, key...)
-	buf = append(buf, id...)
-	buf = append(buf, byte(len(id)))
-	if len(buf) > rateInput {
-		panic("Key + ID too long!")
-	}
-	xoodyak.absorbAny(buf, xoodyak.rates.absorb, flagAbsorbKey)
-
-	if len(counter) > 0 {
-		xoodyak.absorbAny(counter, 1, flagZero)
-	}
-
-	return &xoodyak
+	xoodyak := New()
+	xoodyak.absorbKey(key, id, counter)
+	return xoodyak
 }
 
 func min(a, b int) int {
@@ -112,6 +92,28 @@ func (x *Xoodyak) absorbAny(data []byte, rate int, downFlag Flag) {
 		}
 		x.down(block, downFlag)
 		downFlag = flagZero
+	}
+}
+
+func (x *Xoodyak) absorbKey(key, id, counter []byte) {
+	x.mode = modeKeyed
+	x.rates = Rates{
+		absorb:  rateInput,
+		squeeze: rateOutput,
+	}
+
+	var buf []byte
+	buf = append(buf, key...)
+	buf = append(buf, id...)
+	if len(buf) > rateInput-1 {
+		panic("Key + ID too long!")
+	}
+	buf = append(buf, byte(len(id)))
+
+	x.absorbAny(buf, x.rates.absorb, flagAbsorbKey)
+
+	if len(counter) > 0 {
+		x.absorbAny(counter, 1, flagZero)
 	}
 }
 
