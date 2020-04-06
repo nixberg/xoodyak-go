@@ -1,11 +1,9 @@
 package xoodoo
 
+import "math/bits"
+
 type Xoodoo struct {
 	Bytes [48]byte
-}
-
-func rotate(v uint32, n uint32) uint32 {
-	return (v >> n) | (v << (32 - n))
 }
 
 func (x *Xoodoo) Permute() {
@@ -31,8 +29,8 @@ func (x *Xoodoo) Permute() {
 		var e [4]uint32
 
 		for i := 0; i < 4; i++ {
-			e[i] = rotate(s[i]^s[i+4]^s[i+8], 18)
-			e[i] ^= rotate(e[i], 9)
+			e[i] = bits.RotateLeft32(s[i]^s[i+4]^s[i+8], -18)
+			e[i] ^= bits.RotateLeft32(e[i], -9)
 		}
 
 		for i := 0; i < 12; i++ {
@@ -47,10 +45,10 @@ func (x *Xoodoo) Permute() {
 		for i := 0; i < 4; i++ {
 			a := s[i]
 			b := s[i+4]
-			c := rotate(s[i+8], 21)
+			c := bits.RotateLeft32(s[i+8], -21)
 
-			s[i+8] = rotate((b&^a)^c, 24)
-			s[i+4] = rotate((a&^c)^b, 31)
+			s[i+8] = bits.RotateLeft32((b&^a)^c, -24)
+			s[i+4] = bits.RotateLeft32((a&^c)^b, -31)
 			s[i] ^= c & ^b
 		}
 
