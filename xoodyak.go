@@ -59,6 +59,9 @@ func New() *Xoodyak {
 }
 
 func Keyed(key, id, counter []byte) *Xoodyak {
+	if len(key) == 0 {
+		panic("Key must not be empty!")
+	}
 	xoodyak := New()
 	xoodyak.absorbKey(key, id, counter)
 	return xoodyak

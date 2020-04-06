@@ -8,6 +8,7 @@ type Xoodoo struct {
 
 func (x *Xoodoo) Permute() {
 	var s [12]uint32
+
 	for i, j := 0, 0; i < 12; i++ {
 		s[i] |= (uint32(x.Bytes[j]) << 0)
 		j++
