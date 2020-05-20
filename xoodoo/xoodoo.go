@@ -1,23 +1,28 @@
 package xoodoo
 
-import "math/bits"
+import (
+	"encoding/binary"
+	"math/bits"
+)
 
 type Xoodoo struct {
 	Bytes [48]byte
 }
 
 func (x *Xoodoo) Permute() {
-	var s [12]uint32
-
-	for i, j := 0, 0; i < 12; i++ {
-		s[i] |= (uint32(x.Bytes[j]) << 0)
-		j++
-		s[i] |= (uint32(x.Bytes[j]) << 8)
-		j++
-		s[i] |= (uint32(x.Bytes[j]) << 16)
-		j++
-		s[i] |= (uint32(x.Bytes[j]) << 24)
-		j++
+	s := [12]uint32{
+		binary.LittleEndian.Uint32(x.Bytes[0:4]),
+		binary.LittleEndian.Uint32(x.Bytes[4:8]),
+		binary.LittleEndian.Uint32(x.Bytes[8:12]),
+		binary.LittleEndian.Uint32(x.Bytes[12:16]),
+		binary.LittleEndian.Uint32(x.Bytes[16:20]),
+		binary.LittleEndian.Uint32(x.Bytes[20:24]),
+		binary.LittleEndian.Uint32(x.Bytes[24:28]),
+		binary.LittleEndian.Uint32(x.Bytes[28:32]),
+		binary.LittleEndian.Uint32(x.Bytes[32:36]),
+		binary.LittleEndian.Uint32(x.Bytes[36:40]),
+		binary.LittleEndian.Uint32(x.Bytes[40:44]),
+		binary.LittleEndian.Uint32(x.Bytes[44:48]),
 	}
 
 	roundConstants := [12]uint32{
@@ -57,14 +62,16 @@ func (x *Xoodoo) Permute() {
 		s[9], s[11] = s[11], s[9]
 	}
 
-	for i, j := 0, 0; i < 12; i++ {
-		x.Bytes[j] = byte(s[i] >> 0)
-		j++
-		x.Bytes[j] = byte(s[i] >> 8)
-		j++
-		x.Bytes[j] = byte(s[i] >> 16)
-		j++
-		x.Bytes[j] = byte(s[i] >> 24)
-		j++
-	}
+	binary.LittleEndian.PutUint32(x.Bytes[0:4], s[0])
+	binary.LittleEndian.PutUint32(x.Bytes[4:8], s[1])
+	binary.LittleEndian.PutUint32(x.Bytes[8:12], s[2])
+	binary.LittleEndian.PutUint32(x.Bytes[12:16], s[3])
+	binary.LittleEndian.PutUint32(x.Bytes[16:20], s[4])
+	binary.LittleEndian.PutUint32(x.Bytes[20:24], s[5])
+	binary.LittleEndian.PutUint32(x.Bytes[24:28], s[6])
+	binary.LittleEndian.PutUint32(x.Bytes[28:32], s[7])
+	binary.LittleEndian.PutUint32(x.Bytes[32:36], s[8])
+	binary.LittleEndian.PutUint32(x.Bytes[36:40], s[9])
+	binary.LittleEndian.PutUint32(x.Bytes[40:44], s[10])
+	binary.LittleEndian.PutUint32(x.Bytes[44:48], s[11])
 }
