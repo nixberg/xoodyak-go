@@ -60,7 +60,7 @@ func New() *Xoodyak {
 
 func Keyed(key, id, counter []byte) *Xoodyak {
 	if len(key) == 0 {
-		panic("Key must not be empty!")
+		panic("xoodyak: key is empty")
 	}
 	xoodyak := New()
 	xoodyak.absorbKey(key, id, counter)
@@ -109,7 +109,7 @@ func (x *Xoodyak) absorbKey(key, id, counter []byte) {
 	buf = append(buf, key...)
 	buf = append(buf, id...)
 	if len(buf) > rateInput-1 {
-		panic("Key + ID too long!")
+		panic("xoodyak: key plus id too long")
 	}
 	buf = append(buf, byte(len(id)))
 
@@ -180,14 +180,14 @@ func (x *Xoodyak) Absorb(in []byte) {
 
 func (x *Xoodyak) Encrypt(pt, ct []byte) []byte {
 	if x.mode != modeKeyed {
-		panic("Xoodyak not keyed!")
+		panic("xoodyak: Encrypt invoked in hash mode")
 	}
 	return x.crypt(pt, ct, false)
 }
 
 func (x *Xoodyak) Decrypt(ct, pt []byte) []byte {
 	if x.mode != modeKeyed {
-		panic("Xoodyak not keyed!")
+		panic("xoodyak: Decrypt invoked in hash mode")
 	}
 	return x.crypt(ct, pt, true)
 }
@@ -198,14 +198,14 @@ func (x *Xoodyak) Squeeze(out []byte, count int) []byte {
 
 func (x *Xoodyak) SqueezeKey(out []byte, count int) []byte {
 	if x.mode != modeKeyed {
-		panic("Xoodyak not keyed!")
+		panic("xoodyak: SqueezeKey invoked in hash mode")
 	}
 	return x.squeezeAny(out, count, flagSqueezeKey)
 }
 
 func (x *Xoodyak) Ratchet() {
 	if x.mode != modeKeyed {
-		panic("Xoodyak not keyed!")
+		panic("xoodyak: Ratchet invoked in hash mode")
 	}
 	buf := x.squeezeAny(nil, rateRatchet, flagRatchet)
 	x.absorbAny(buf, x.rates.absorb, flagZero)
