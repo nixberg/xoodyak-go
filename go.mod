@@ -1,3 +1,3 @@
-module xoodyak
+module github.com/nixberg/xoodyak-go
 
-go 1.13
+go 1.14
