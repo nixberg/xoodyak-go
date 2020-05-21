@@ -1,6 +1,6 @@
 package xoodyak
 
-import "xoodyak/xoodoo"
+import "github.com/nixberg/xoodyak-go/internal/xoodoo"
 
 type Flag byte
 
@@ -70,9 +70,8 @@ func Keyed(key, id, counter []byte) *Xoodyak {
 func min(a, b int) int {
 	if a < b {
 		return a
-	} else {
-		return b
 	}
+	return b
 }
 
 func blocks(data []byte, rate int) (blocks [][]byte) {
