@@ -23,13 +23,12 @@ func TestXoodoo(t *testing.T) {
 	}
 }
 
-func TestGetSet(t *testing.T) {
-	var xoodoo Xoodoo
+var result [48]byte
 
-	for i := 0; i < 48; i++ {
-		xoodoo.Bytes[i] ^= byte(i)
-		if xoodoo.Bytes[i] != byte(i) {
-			t.Fail()
-		}
+func BenchmarkXoodoo(b *testing.B) {
+	var xoodoo Xoodoo
+	for i := 0; i < 128*1024; i++ {
+		xoodoo.Permute()
 	}
+	result = xoodoo.Bytes
 }
