@@ -57,44 +57,13 @@ func New() *Xoodyak {
 	}
 }
 
-func blocks(data []byte, rate xoodyakRate) (blocks [][]byte) {
-	dataLen := len(data)
-	if dataLen == 0 {
-		blocks = append(blocks, []byte{})
-		return
-	}
-	for start := 0; start < dataLen; start += int(rate) {
-		end := min(start+int(rate), dataLen)
-		blocks = append(blocks, data[start:end])
-	}
-	return
-}
-
-func (x *Xoodyak) absorbAny(data []byte, rate xoodyakRate, downFlag xoodyakFlag) {
-	for _, block := range blocks(data, rate) {
-		if x.phase != phaseUp {
-			x.up(nil, 0, flagZero)
-		}
-		x.down(block, downFlag)
-		downFlag = flagZero
-	}
-}
-
-func (x *Xoodyak) squeezeAny(out []byte, count int, upFlag xoodyakFlag) []byte {
-	iLen := len(out)
-	out = x.up(out, min(count, int(x.rates.squeeze)), upFlag)
-	for len(out)-iLen < count {
-		x.down(nil, flagZero)
-		out = x.up(out, min(count-len(out)+iLen, int(x.rates.squeeze)), flagZero)
-	}
-	return out
-}
-
 func (x *Xoodyak) down(block []byte, flag xoodyakFlag) {
 	x.phase = phaseDown
+
 	for i, b := range block {
 		x.state.Bytes[i] ^= b
 	}
+
 	x.state.Bytes[len(block)] ^= 0x01
 	if x.mode == modeHash {
 		x.state.Bytes[47] ^= byte(flag) & 0x01
@@ -103,16 +72,52 @@ func (x *Xoodyak) down(block []byte, flag xoodyakFlag) {
 	}
 }
 
-func (x *Xoodyak) up(out []byte, count int, flag xoodyakFlag) []byte {
+func (x *Xoodyak) up(output []byte, count int, flag xoodyakFlag) []byte {
 	x.phase = phaseUp
 	if x.mode != modeHash {
 		x.state.Bytes[47] ^= byte(flag)
 	}
 	x.state.Permute()
+
 	for i := 0; i < count; i++ {
-		out = append(out, x.state.Bytes[i])
+		output = append(output, x.state.Bytes[i])
 	}
-	return out
+	return output
+}
+
+func (x *Xoodyak) absorbAny(input []byte, rate xoodyakRate, downFlag xoodyakFlag) {
+	for {
+		block := input[:min(rate, len(input))]
+		input = input[len(block):]
+
+		if x.phase != phaseUp {
+			x.up(nil, 0, flagZero)
+		}
+
+		x.down(block, downFlag)
+		downFlag = flagZero
+
+		if len(input) == 0 {
+			break
+		}
+	}
+}
+
+func (x *Xoodyak) squeezeAny(output []byte, count int, upFlag xoodyakFlag) []byte {
+	blockSize := min(x.rates.squeeze, count)
+	count -= blockSize
+
+	output = x.up(output, blockSize, upFlag)
+
+	for count > 0 {
+		blockSize = min(x.rates.squeeze, count)
+		count -= blockSize
+
+		x.down(nil, flagZero)
+		output = x.up(output, blockSize, flagZero)
+	}
+
+	return output
 }
 
 func (x *Xoodyak) Absorb(in []byte) {
@@ -123,7 +128,8 @@ func (x *Xoodyak) Squeeze(out []byte, count int) []byte {
 	return x.squeezeAny(out, count, flagSqueeze)
 }
 
-func min(a, b int) int {
+func min(rate xoodyakRate, b int) int {
+	a := int(rate)
 	if a < b {
 		return a
 	}

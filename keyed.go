@@ -44,23 +44,34 @@ func NewKeyed(key, id, counter []byte) *KeyedXoodyak {
 	return &x
 }
 
-func (x *KeyedXoodyak) crypt(in, out []byte, decrypt bool) []byte {
+func (x *KeyedXoodyak) crypt(input, output []byte, decrypt bool) []byte {
 	flag := flagCrypt
-	offset := len(out)
-	for _, block := range blocks(in, rateKeyedOutput) {
+	offset := len(output)
+
+	for {
+		block := input[:min(rateKeyedOutput, len(input))]
+		input = input[len(block):]
+
 		x.xoodyak.up(nil, 0, flag)
 		flag = flagZero
+
 		for i, b := range block {
-			out = append(out, b^x.xoodyak.state.Bytes[i])
+			output = append(output, b^x.xoodyak.state.Bytes[i])
 		}
+
 		if decrypt {
-			x.xoodyak.down(out[offset:offset+len(block)], flagZero)
+			x.xoodyak.down(output[offset:offset+len(block)], flagZero)
 		} else {
 			x.xoodyak.down(block, flagZero)
 		}
+
 		offset += len(block)
+
+		if len(input) == 0 {
+			break
+		}
 	}
-	return out
+	return output
 }
 
 func (x *KeyedXoodyak) Absorb(in []byte) {
