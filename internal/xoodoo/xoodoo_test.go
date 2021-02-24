@@ -22,13 +22,3 @@ func TestXoodoo(t *testing.T) {
 		t.Fail()
 	}
 }
-
-var result [48]byte
-
-func BenchmarkXoodoo(b *testing.B) {
-	var xoodoo Xoodoo
-	for i := 0; i < 128*1024; i++ {
-		xoodoo.Permute()
-	}
-	result = xoodoo.Bytes
-}
