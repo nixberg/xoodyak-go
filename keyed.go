@@ -74,24 +74,24 @@ func (x *KeyedXoodyak) crypt(input, output []byte, decrypt bool) []byte {
 	return output
 }
 
-func (x *KeyedXoodyak) Absorb(in []byte) {
-	x.xoodyak.Absorb(in)
+func (x *KeyedXoodyak) Absorb(input []byte) {
+	x.xoodyak.Absorb(input)
 }
 
-func (x *KeyedXoodyak) Encrypt(pt, ct []byte) []byte {
-	return x.crypt(pt, ct, false)
+func (x *KeyedXoodyak) Encrypt(plaintext, ciphertext []byte) []byte {
+	return x.crypt(plaintext, ciphertext, false)
 }
 
-func (x *KeyedXoodyak) Decrypt(ct, pt []byte) []byte {
-	return x.crypt(ct, pt, true)
+func (x *KeyedXoodyak) Decrypt(ciphertext, plaintext []byte) []byte {
+	return x.crypt(ciphertext, plaintext, true)
 }
 
-func (x *KeyedXoodyak) Squeeze(out []byte, count int) []byte {
-	return x.xoodyak.Squeeze(out, count)
+func (x *KeyedXoodyak) Squeeze(output []byte, count int) []byte {
+	return x.xoodyak.Squeeze(output, count)
 }
 
-func (x *KeyedXoodyak) SqueezeKey(out []byte, count int) []byte {
-	return x.xoodyak.squeezeAny(out, count, flagSqueezeKey)
+func (x *KeyedXoodyak) SqueezeKey(output []byte, count int) []byte {
+	return x.xoodyak.squeezeAny(output, count, flagSqueezeKey)
 }
 
 func (x *KeyedXoodyak) Ratchet() {

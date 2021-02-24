@@ -120,12 +120,12 @@ func (x *Xoodyak) squeezeAny(output []byte, count int, upFlag xoodyakFlag) []byt
 	return output
 }
 
-func (x *Xoodyak) Absorb(in []byte) {
-	x.absorbAny(in, x.rates.absorb, flagAbsorb)
+func (x *Xoodyak) Absorb(input []byte) {
+	x.absorbAny(input, x.rates.absorb, flagAbsorb)
 }
 
-func (x *Xoodyak) Squeeze(out []byte, count int) []byte {
-	return x.squeezeAny(out, count, flagSqueeze)
+func (x *Xoodyak) Squeeze(output []byte, count int) []byte {
+	return x.squeezeAny(output, count, flagSqueeze)
 }
 
 func min(rate xoodyakRate, b int) int {
