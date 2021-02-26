@@ -30,17 +30,17 @@ func (x *Xoodoo) Permute() {
 	}
 
 	for _, roundConstant := range roundConstants {
-		e0 := bits.RotateLeft32(s0^s4^s8, -18)
-		e0 ^= bits.RotateLeft32(e0, -9)
+		p0 := s0 ^ s4 ^ s8
+		e0 := bits.RotateLeft32(p0, 5) ^ bits.RotateLeft32(p0, 14)
 
-		e1 := bits.RotateLeft32(s1^s5^s9, -18)
-		e1 ^= bits.RotateLeft32(e1, -9)
+		p1 := s1 ^ s5 ^ s9
+		e1 := bits.RotateLeft32(p1, 5) ^ bits.RotateLeft32(p1, 14)
 
-		e2 := bits.RotateLeft32(s2^s6^s10, -18)
-		e2 ^= bits.RotateLeft32(e2, -9)
+		p2 := s2 ^ s6 ^ s10
+		e2 := bits.RotateLeft32(p2, 5) ^ bits.RotateLeft32(p2, 14)
 
-		e3 := bits.RotateLeft32(s3^s7^s11, -18)
-		e3 ^= bits.RotateLeft32(e3, -9)
+		p3 := s3 ^ s7 ^ s11
+		e3 := bits.RotateLeft32(p3, 5) ^ bits.RotateLeft32(p3, 14)
 
 		s0 ^= e3
 		s1 ^= e0
@@ -58,45 +58,46 @@ func (x *Xoodoo) Permute() {
 		s7, s4 = s4, s7
 		s7, s5 = s5, s7
 		s7, s6 = s6, s7
+
 		s0 ^= roundConstant
 
 		{
 			a := s0
 			b := s4
-			c := bits.RotateLeft32(s8, -21)
+			c := bits.RotateLeft32(s8, 11)
 
-			s8 = bits.RotateLeft32((b&^a)^c, -24)
-			s4 = bits.RotateLeft32((a&^c)^b, -31)
+			s8 = bits.RotateLeft32((b&^a)^c, 8)
+			s4 = bits.RotateLeft32((a&^c)^b, 1)
 			s0 ^= c & ^b
 		}
 
 		{
 			a := s1
 			b := s5
-			c := bits.RotateLeft32(s9, -21)
+			c := bits.RotateLeft32(s9, 11)
 
-			s9 = bits.RotateLeft32((b&^a)^c, -24)
-			s5 = bits.RotateLeft32((a&^c)^b, -31)
+			s9 = bits.RotateLeft32((b&^a)^c, 8)
+			s5 = bits.RotateLeft32((a&^c)^b, 1)
 			s1 ^= c & ^b
 		}
 
 		{
 			a := s2
 			b := s6
-			c := bits.RotateLeft32(s10, -21)
+			c := bits.RotateLeft32(s10, 11)
 
-			s10 = bits.RotateLeft32((b&^a)^c, -24)
-			s6 = bits.RotateLeft32((a&^c)^b, -31)
+			s10 = bits.RotateLeft32((b&^a)^c, 8)
+			s6 = bits.RotateLeft32((a&^c)^b, 1)
 			s2 ^= c & ^b
 		}
 
 		{
 			a := s3
 			b := s7
-			c := bits.RotateLeft32(s11, -21)
+			c := bits.RotateLeft32(s11, 11)
 
-			s11 = bits.RotateLeft32((b&^a)^c, -24)
-			s7 = bits.RotateLeft32((a&^c)^b, -31)
+			s11 = bits.RotateLeft32((b&^a)^c, 8)
+			s7 = bits.RotateLeft32((a&^c)^b, 1)
 			s3 ^= c & ^b
 		}
 
