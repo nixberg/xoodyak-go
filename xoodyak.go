@@ -87,7 +87,7 @@ func (x *Xoodyak) up(output []byte, count int, flag xoodyakFlag) []byte {
 
 func (x *Xoodyak) absorbAny(input []byte, rate xoodyakRate, downFlag xoodyakFlag) {
 	for {
-		block := input[:min(rate, len(input))]
+		block := input[:min(int(rate), len(input))]
 		input = input[len(block):]
 
 		if x.phase != phaseUp {
@@ -104,13 +104,13 @@ func (x *Xoodyak) absorbAny(input []byte, rate xoodyakRate, downFlag xoodyakFlag
 }
 
 func (x *Xoodyak) squeezeAny(output []byte, count int, upFlag xoodyakFlag) []byte {
-	blockSize := min(x.rates.squeeze, count)
+	blockSize := min(int(x.rates.squeeze), count)
 	count -= blockSize
 
 	output = x.up(output, blockSize, upFlag)
 
 	for count > 0 {
-		blockSize = min(x.rates.squeeze, count)
+		blockSize = min(int(x.rates.squeeze), count)
 		count -= blockSize
 
 		x.down(nil, flagZero)
@@ -126,12 +126,4 @@ func (x *Xoodyak) Absorb(input []byte) {
 
 func (x *Xoodyak) Squeeze(output []byte, count int) []byte {
 	return x.squeezeAny(output, count, flagSqueeze)
-}
-
-func min(rate xoodyakRate, b int) int {
-	a := int(rate)
-	if a < b {
-		return a
-	}
-	return b
 }

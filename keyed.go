@@ -49,7 +49,7 @@ func (x *KeyedXoodyak) crypt(input, output []byte, decrypt bool) []byte {
 	offset := len(output)
 
 	for {
-		block := input[:min(rateKeyedOutput, len(input))]
+		block := input[:min(int(rateKeyedOutput), len(input))]
 		input = input[len(block):]
 
 		x.xoodyak.up(nil, 0, flag)
