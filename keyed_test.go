@@ -3,52 +3,43 @@ package xoodyak
 import (
 	"bytes"
 	_ "embed"
-	"encoding/hex"
-	"encoding/json"
 	"testing"
+
+	"github.com/nixberg/blobby-go"
 )
 
-//go:embed test/aead.json
-var aeadKats []byte
+//go:embed testdata/aead.blb
+var encodedAEADBlobs []byte
 
 func TestKeyedMode(t *testing.T) {
-	var kats []struct {
-		Key   string `json:"key"`
-		Nonce string `json:"nonce"`
-		PT    string `json:"pt"`
-		AD    string `json:"ad"`
-		CT    string `json:"ct"`
-	}
-	json.Unmarshal(aeadKats, &kats)
+	blobs := blobby.MustDecode(encodedAEADBlobs)
 
-	for i, kat := range kats {
-		key, _ := hex.DecodeString(kat.Key)
-		nonce, _ := hex.DecodeString(kat.Nonce)
-		pt, _ := hex.DecodeString(kat.PT)
-		ad, _ := hex.DecodeString(kat.AD)
-		ct, _ := hex.DecodeString(kat.CT)
-		tag := ct[len(pt):]
+	for i := 0; i < len(blobs); i += 6 {
+		key := blobs[i+0]
+		nonce := blobs[i+1]
+		ad := blobs[i+2]
+		pt := blobs[i+3]
+		ct := blobs[i+4]
+		tag := blobs[i+5]
 
 		encryptor := NewKeyed(key, nil, nil)
 		encryptor.Absorb(nonce)
 		encryptor.Absorb(ad)
+
 		decryptor := *encryptor
 
-		newCT := encryptor.Encrypt(pt, []byte("prefix"))
-		newCT = encryptor.Squeeze(newCT, len(tag))
-
-		if !bytes.Equal(ct, newCT[6:]) {
-			t.Errorf("kats/aead: %d", i)
+		if !bytes.Equal(encryptor.Encrypt(pt, nil), ct) {
+			t.Fail()
+		}
+		if !bytes.Equal(encryptor.Squeeze(nil, len(tag)), tag) {
+			t.Fail()
 		}
 
-		newPT := decryptor.Decrypt(ct[:len(pt)], []byte("prefix"))
-		newTag := decryptor.Squeeze([]byte("prefix"), len(tag))
-
-		if !bytes.Equal(pt, newPT[6:]) {
-			t.Errorf("kats/aead: %d", i)
+		if !bytes.Equal(decryptor.Decrypt(ct, nil), pt) {
+			t.Fail()
 		}
-		if !bytes.Equal(tag, newTag[6:]) {
-			t.Errorf("kats/aead: %d", i)
+		if !bytes.Equal(decryptor.Squeeze(nil, len(tag)), tag) {
+			t.Fail()
 		}
 	}
 }
