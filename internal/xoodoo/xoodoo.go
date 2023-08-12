@@ -5,31 +5,27 @@ import (
 	"math/bits"
 )
 
-type Xoodoo struct {
-	Bytes [48]byte
-}
+type State [48]byte
 
-func (x *Xoodoo) Permute() {
-	s0 := binary.LittleEndian.Uint32(x.Bytes[0:4])
-	s1 := binary.LittleEndian.Uint32(x.Bytes[4:8])
-	s2 := binary.LittleEndian.Uint32(x.Bytes[8:12])
-	s3 := binary.LittleEndian.Uint32(x.Bytes[12:16])
-	s4 := binary.LittleEndian.Uint32(x.Bytes[16:20])
-	s5 := binary.LittleEndian.Uint32(x.Bytes[20:24])
-	s6 := binary.LittleEndian.Uint32(x.Bytes[24:28])
-	s7 := binary.LittleEndian.Uint32(x.Bytes[28:32])
-	s8 := binary.LittleEndian.Uint32(x.Bytes[32:36])
-	s9 := binary.LittleEndian.Uint32(x.Bytes[36:40])
-	s10 := binary.LittleEndian.Uint32(x.Bytes[40:44])
-	s11 := binary.LittleEndian.Uint32(x.Bytes[44:48])
+func (state *State) Permute() {
+	s0 := binary.LittleEndian.Uint32(state[0:4])
+	s1 := binary.LittleEndian.Uint32(state[4:8])
+	s2 := binary.LittleEndian.Uint32(state[8:12])
+	s3 := binary.LittleEndian.Uint32(state[12:16])
+	s4 := binary.LittleEndian.Uint32(state[16:20])
+	s5 := binary.LittleEndian.Uint32(state[20:24])
+	s6 := binary.LittleEndian.Uint32(state[24:28])
+	s7 := binary.LittleEndian.Uint32(state[28:32])
+	s8 := binary.LittleEndian.Uint32(state[32:36])
+	s9 := binary.LittleEndian.Uint32(state[36:40])
+	s10 := binary.LittleEndian.Uint32(state[40:44])
+	s11 := binary.LittleEndian.Uint32(state[44:48])
 
-	roundConstants := [12]uint32{
+	for _, roundConstant := range [12]uint32{
 		0x058, 0x038, 0x3c0, 0x0d0,
 		0x120, 0x014, 0x060, 0x02c,
 		0x380, 0x0f0, 0x1a0, 0x012,
-	}
-
-	for _, roundConstant := range roundConstants {
+	} {
 		p0 := s0 ^ s4 ^ s8
 		e0 := bits.RotateLeft32(p0, 5) ^ bits.RotateLeft32(p0, 14)
 
@@ -105,16 +101,16 @@ func (x *Xoodoo) Permute() {
 		s9, s11 = s11, s9
 	}
 
-	binary.LittleEndian.PutUint32(x.Bytes[0:4], s0)
-	binary.LittleEndian.PutUint32(x.Bytes[4:8], s1)
-	binary.LittleEndian.PutUint32(x.Bytes[8:12], s2)
-	binary.LittleEndian.PutUint32(x.Bytes[12:16], s3)
-	binary.LittleEndian.PutUint32(x.Bytes[16:20], s4)
-	binary.LittleEndian.PutUint32(x.Bytes[20:24], s5)
-	binary.LittleEndian.PutUint32(x.Bytes[24:28], s6)
-	binary.LittleEndian.PutUint32(x.Bytes[28:32], s7)
-	binary.LittleEndian.PutUint32(x.Bytes[32:36], s8)
-	binary.LittleEndian.PutUint32(x.Bytes[36:40], s9)
-	binary.LittleEndian.PutUint32(x.Bytes[40:44], s10)
-	binary.LittleEndian.PutUint32(x.Bytes[44:48], s11)
+	binary.LittleEndian.PutUint32(state[0:4], s0)
+	binary.LittleEndian.PutUint32(state[4:8], s1)
+	binary.LittleEndian.PutUint32(state[8:12], s2)
+	binary.LittleEndian.PutUint32(state[12:16], s3)
+	binary.LittleEndian.PutUint32(state[16:20], s4)
+	binary.LittleEndian.PutUint32(state[20:24], s5)
+	binary.LittleEndian.PutUint32(state[24:28], s6)
+	binary.LittleEndian.PutUint32(state[28:32], s7)
+	binary.LittleEndian.PutUint32(state[32:36], s8)
+	binary.LittleEndian.PutUint32(state[36:40], s9)
+	binary.LittleEndian.PutUint32(state[40:44], s10)
+	binary.LittleEndian.PutUint32(state[44:48], s11)
 }

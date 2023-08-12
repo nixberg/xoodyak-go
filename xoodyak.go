@@ -41,7 +41,7 @@ const (
 
 type Xoodyak struct {
 	phase xoodyakPhase
-	state xoodoo.Xoodoo
+	state xoodoo.State
 	mode  xoodyakMode
 	rates xoodyakRates
 }
@@ -61,26 +61,26 @@ func (x *Xoodyak) down(block []byte, flag xoodyakFlag) {
 	x.phase = phaseDown
 
 	for i, b := range block {
-		x.state.Bytes[i] ^= b
+		x.state[i] ^= b
 	}
 
-	x.state.Bytes[len(block)] ^= 0x01
+	x.state[len(block)] ^= 0x01
 	if x.mode == modeHash {
-		x.state.Bytes[47] ^= byte(flag) & 0x01
+		x.state[47] ^= byte(flag) & 0x01
 	} else {
-		x.state.Bytes[47] ^= byte(flag)
+		x.state[47] ^= byte(flag)
 	}
 }
 
 func (x *Xoodyak) up(output []byte, count int, flag xoodyakFlag) []byte {
 	x.phase = phaseUp
 	if x.mode != modeHash {
-		x.state.Bytes[47] ^= byte(flag)
+		x.state[47] ^= byte(flag)
 	}
 	x.state.Permute()
 
 	for i := 0; i < count; i++ {
-		output = append(output, x.state.Bytes[i])
+		output = append(output, x.state[i])
 	}
 	return output
 }

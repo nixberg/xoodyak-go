@@ -56,7 +56,7 @@ func (x *KeyedXoodyak) crypt(input, output []byte, decrypt bool) []byte {
 		flag = flagZero
 
 		for i, b := range block {
-			output = append(output, b^x.xoodyak.state.Bytes[i])
+			output = append(output, b^x.xoodyak.state[i])
 		}
 
 		if decrypt {
