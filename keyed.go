@@ -28,7 +28,7 @@ func NewKeyed(key, id, counter []byte) *KeyedXoodyak {
 	buffer = append(buffer, id...)
 	buffer = append(buffer, byte(len(id)))
 	if !(len(buffer) <= rateKeyedInput) {
-		panic("xoodyak: length key and id exceeds 43 bytes")
+		panic("xoodyak: length of key+id exceeds 43 bytes")
 	}
 
 	x.xoodyak.absorbAny(buffer, x.xoodyak.rates.absorb, flagAbsorbKey)
