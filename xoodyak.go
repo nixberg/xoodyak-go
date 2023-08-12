@@ -2,80 +2,65 @@ package xoodyak
 
 import "github.com/nixberg/xoodyak-go/internal/xoodoo"
 
-type xoodyakPhase int
-
 const (
-	phaseUp xoodyakPhase = iota
-	phaseDown
-)
+	flagZero       byte = 0x00
+	flagAbsorbKey  byte = 0x02
+	flagAbsorb     byte = 0x03
+	flagRatchet    byte = 0x10
+	flagSqueezeKey byte = 0x20
+	flagSqueeze    byte = 0x40
+	flagCrypt      byte = 0x80
 
-type xoodyakMode int
-
-const (
-	modeHash xoodyakMode = iota
-	modeKeyed
-)
-
-type xoodyakRate int
-
-const (
-	rateHash xoodyakRate = 16
-)
-
-type xoodyakRates struct {
-	absorb  xoodyakRate
-	squeeze xoodyakRate
-}
-
-type xoodyakFlag byte
-
-const (
-	flagZero       xoodyakFlag = 0x00
-	flagAbsorbKey  xoodyakFlag = 0x02
-	flagAbsorb     xoodyakFlag = 0x03
-	flagRatchet    xoodyakFlag = 0x10
-	flagSqueezeKey xoodyakFlag = 0x20
-	flagSqueeze    xoodyakFlag = 0x40
-	flagCrypt      xoodyakFlag = 0x80
+	rateHash        int = 16
+	rateKeyedInput  int = 44
+	rateKeyedOutput int = 24
+	rateRatchet     int = 16
+	rateCounter     int = 1
 )
 
 type Xoodyak struct {
-	phase xoodyakPhase
 	state xoodoo.State
-	mode  xoodyakMode
-	rates xoodyakRates
+	rates struct {
+		absorb  int
+		squeeze int
+	}
+	isPhaseUp  bool
+	isModeHash bool
 }
 
 func New() *Xoodyak {
 	return &Xoodyak{
-		phase: phaseUp,
-		mode:  modeHash,
-		rates: xoodyakRates{
+		rates: struct {
+			absorb  int
+			squeeze int
+		}{
 			absorb:  rateHash,
 			squeeze: rateHash,
 		},
+		isPhaseUp:  true,
+		isModeHash: true,
 	}
 }
 
-func (x *Xoodyak) down(block []byte, flag xoodyakFlag) {
-	x.phase = phaseDown
+func (x *Xoodyak) down(block []byte, flag byte) {
+	x.isPhaseUp = false
 
 	for i, b := range block {
 		x.state[i] ^= b
 	}
 
 	x.state[len(block)] ^= 0x01
-	if x.mode == modeHash {
-		x.state[47] ^= byte(flag) & 0x01
+	if x.isModeHash {
+		x.state[47] ^= flag & 0x01
 	} else {
-		x.state[47] ^= byte(flag)
+		x.state[47] ^= flag
 	}
 }
 
-func (x *Xoodyak) up(output []byte, count int, flag xoodyakFlag) []byte {
-	x.phase = phaseUp
-	if x.mode != modeHash {
-		x.state[47] ^= byte(flag)
+func (x *Xoodyak) up(output []byte, count int, flag byte) []byte {
+	x.isPhaseUp = true
+	if !x.isModeHash {
+		x.state[47] ^= flag
 	}
 	x.state.Permute()
 
@@ -85,12 +70,12 @@ func (x *Xoodyak) up(output []byte, count int, flag xoodyakFlag) []byte {
 	return output
 }
 
-func (x *Xoodyak) absorbAny(input []byte, rate xoodyakRate, downFlag xoodyakFlag) {
+func (x *Xoodyak) absorbAny(input []byte, rate int, downFlag byte) {
 	for {
-		block := input[:min(int(rate), len(input))]
+		block := input[:min(rate, len(input))]
 		input = input[len(block):]
 
-		if x.phase != phaseUp {
+		if !x.isPhaseUp {
 			x.up(nil, 0, flagZero)
 		}
 
@@ -103,14 +88,14 @@ func (x *Xoodyak) absorbAny(input []byte, rate xoodyakRate, downFlag xoodyakFlag
 	}
 }
 
-func (x *Xoodyak) squeezeAny(output []byte, count int, upFlag xoodyakFlag) []byte {
-	blockSize := min(int(x.rates.squeeze), count)
+func (x *Xoodyak) squeezeAny(output []byte, count int, upFlag byte) []byte {
+	blockSize := min(x.rates.squeeze, count)
 	count -= blockSize
 
 	output = x.up(output, blockSize, upFlag)
 
 	for count > 0 {
-		blockSize = min(int(x.rates.squeeze), count)
+		blockSize = min(x.rates.squeeze, count)
 		count -= blockSize
 
 		x.down(nil, flagZero)

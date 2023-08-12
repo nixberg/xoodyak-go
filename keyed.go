@@ -4,13 +4,6 @@ type KeyedXoodyak struct {
 	xoodyak Xoodyak
 }
 
-const (
-	rateKeyedInput  xoodyakRate = 44
-	rateKeyedOutput xoodyakRate = 24
-	rateRatchet     xoodyakRate = 16
-	rateCounter     xoodyakRate = 1
-)
-
 func NewKeyed(key, id, counter []byte) *KeyedXoodyak {
 	if len(key) == 0 {
 		panic("xoodyak: key is empty")
@@ -18,12 +11,15 @@ func NewKeyed(key, id, counter []byte) *KeyedXoodyak {
 
 	x := KeyedXoodyak{
 		Xoodyak{
-			phase: phaseUp,
-			mode:  modeKeyed,
-			rates: xoodyakRates{
+			rates: struct {
+				absorb  int
+				squeeze int
+			}{
 				absorb:  rateKeyedInput,
 				squeeze: rateKeyedOutput,
 			},
+			isPhaseUp:  true,
+			isModeHash: false,
 		},
 	}
 
@@ -31,7 +27,7 @@ func NewKeyed(key, id, counter []byte) *KeyedXoodyak {
 	buffer = append(buffer, key...)
 	buffer = append(buffer, id...)
 	buffer = append(buffer, byte(len(id)))
-	if !(len(buffer) <= int(rateKeyedInput)) {
+	if !(len(buffer) <= rateKeyedInput) {
 		panic("xoodyak: length key and id exceeds 43 bytes")
 	}
 
@@ -49,7 +45,7 @@ func (x *KeyedXoodyak) crypt(input, output []byte, decrypt bool) []byte {
 	offset := len(output)
 
 	for {
-		block := input[:min(int(rateKeyedOutput), len(input))]
+		block := input[:min(rateKeyedOutput, len(input))]
 		input = input[len(block):]
 
 		x.xoodyak.up(nil, 0, flag)
@@ -95,6 +91,6 @@ func (x *KeyedXoodyak) SqueezeKey(output []byte, count int) []byte {
 }
 
 func (x *KeyedXoodyak) Ratchet() {
-	buffer := x.xoodyak.squeezeAny(nil, int(rateRatchet), flagRatchet)
+	buffer := x.xoodyak.squeezeAny(nil, rateRatchet, flagRatchet)
 	x.xoodyak.absorbAny(buffer, x.xoodyak.rates.absorb, flagZero)
 }
