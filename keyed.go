@@ -67,6 +67,7 @@ func (x *KeyedXoodyak) crypt(input, output []byte, decrypt bool) []byte {
 			break
 		}
 	}
+
 	return output
 }
 

@@ -59,15 +59,13 @@ func (x *Xoodyak) down(block []byte, flag byte) {
 
 func (x *Xoodyak) up(output []byte, count int, flag byte) []byte {
 	x.isPhaseUp = true
+
 	if !x.isModeHash {
 		x.state[47] ^= flag
 	}
 	x.state.Permute()
 
-	for i := 0; i < count; i++ {
-		output = append(output, x.state[i])
-	}
-	return output
+	return append(output, x.state[:count]...)
 }
 
 func (x *Xoodyak) absorbAny(input []byte, rate int, downFlag byte) {
